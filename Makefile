@@ -21,7 +21,7 @@ templates-release:
 		-prefix "bindata" \
 		bindata/...
 
-test:
+test: templates-debug
 	ineffassign ./
 	misspell -error README.md ./pkg/**/*
 	gofmt -d -s -e ./pkg/

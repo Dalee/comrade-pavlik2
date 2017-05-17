@@ -84,9 +84,17 @@ func (c *Client) GetTagList(project *Project) ([]*Tag, error) {
 //
 //
 func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
+	// v4 uses sha as parameter name
+	// v3 uses ref as parameter name
+	refParam := "ref"
+	if c.HasV4Support {
+		refParam = "sha"
+	}
+
 	endpoint := fmt.Sprintf(
-		"projects/%d/repository/archive.tar.gz?ref=%s",
+		"projects/%d/repository/archive.tar.gz?%s=%s",
 		project.ID,
+		refParam,
 		url.QueryEscape(ref),
 	)
 

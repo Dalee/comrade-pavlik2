@@ -12,5 +12,5 @@ install:
   - make install
 
 script:
-  - make build-linux
   - make test
+  - make build-linux

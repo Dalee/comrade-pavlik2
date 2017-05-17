@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Dalee/comrade-pavlik2.svg?branch=master)](https://travis-ci.org/Dalee/comrade-pavlik2)
+
+
 # Private package registry: NPM, Yarn or Composer
 
 ![logo from wikipedia](pavlik.png)

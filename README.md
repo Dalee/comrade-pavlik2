@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/Dalee/comrade-pavlik2.svg?branch=master)](https://travis-ci.org/Dalee/comrade-pavlik2)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Dalee/comrade-pavlik2)](https://goreportcard.com/report/github.com/Dalee/comrade-pavlik2)
+[![codebeat badge](https://codebeat.co/badges/546e6f28-3500-4d4e-8ead-a4405ec029a4)](https://codebeat.co/projects/github-com-dalee-comrade-pavlik2-master)
 
 
 # Private package registry: NPM, Yarn or Composer

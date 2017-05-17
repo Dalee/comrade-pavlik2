@@ -178,8 +178,8 @@ Do not put `auth.json` and `.npmrc` under version control!
 ```
 @acme:registry=http://packages.example.com/
 //packages.example.com/:_authToken=${NPM_TOKEN}
-always-auth=true
 ```
+ * for `yarn`, `always-auth=true` option is required in `.npmrc`.
 
 #### CI/CD example
 
@@ -192,11 +192,11 @@ Setup NPM_TOKEN environment variable for Build Task.
 WORKDIR /app
 COPY package.json npm-shrinkwrap.json /app/
 
+RUN echo "@acme:registry=http://packages.example.com/\n\
+//packages.example.com/:_authToken=\${NPM_TOKEN}" > /app/.npmrc
+
 ARG NPM_TOKEN
-RUN echo \
-    "@acme:registry=http://packages.example.com/\n//packages.example.com/:_authToken=\${NPM_TOKEN}\nalways-auth=true" \
-    > /app/.npmrc && \
-    npm install --silent
+RUN npm install --silent
 ...
 ```
 

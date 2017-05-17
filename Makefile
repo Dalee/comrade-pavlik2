@@ -1,9 +1,9 @@
 install:
-	go get -u github.com/Masterminds/glide
-	go get -u github.com/golang/lint/golint
-	go get -u github.com/gordonklaus/ineffassign
-	go get -u github.com/client9/misspell/cmd/misspell
-	go get -u github.com/jteeuwen/go-bindata/...
+	go get github.com/Masterminds/glide
+	go get github.com/golang/lint/golint
+	go get github.com/gordonklaus/ineffassign
+	go get github.com/client9/misspell/cmd/misspell
+	go get github.com/jteeuwen/go-bindata/...
 	glide install
 
 templates-debug:

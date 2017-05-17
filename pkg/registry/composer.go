@@ -13,20 +13,15 @@ import (
 )
 
 type (
-	// ComposerRegistry is struct to represent methods to display
-	// gitlab repositories as composer packages
 	ComposerRegistry struct {
 		conn *client.GitLabConnection
 	}
 
-	// ComposerPackage is struct to represent single repository
-	// as composer package
 	ComposerPackage struct {
 		Packages     map[string]map[string]composerVersion `json:"packages"`
 		PackagesLock *sync.RWMutex                         `json:"-"`
 	}
 
-	//
 	composerVersion struct {
 		Name       string                  `json:"name"`
 		Type       string                  `json:"type,omitempty"`
@@ -54,8 +49,7 @@ func NewComposerRegistry(conn *client.GitLabConnection) *ComposerRegistry {
 	}
 }
 
-// GetPackageInfo - get single package info, debug method,
-// format package same way as /packages.json should be.
+// GetPackageInfo - get single package info, debug method.
 func (c *ComposerRegistry) GetPackageInfo(uuid string, endpoint string) (*ComposerPackage, error) {
 	repo, err := c.conn.GetRepo(client.KindComposer, uuid)
 	if err != nil {
@@ -74,7 +68,7 @@ func (c *ComposerRegistry) GetPackageInfo(uuid string, endpoint string) (*Compos
 	return rootPackage, nil
 }
 
-// GetPackageInfoList - get whole bunch of packages visible for provided token
+// GetPackageInfoList - get whole list of packages visible for current token
 func (c *ComposerRegistry) GetPackageInfoList(endpoint string) (*ComposerPackage, error) {
 	repoList, err := c.conn.GetRepoList(client.KindComposer)
 	if err != nil {
@@ -120,14 +114,15 @@ func (c *ComposerRegistry) GetPackageInfoList(endpoint string) (*ComposerPackage
 	return nil, errors.New("Error while fetchig packages")
 }
 
-// GetPackageArchive - get whole package as zip archive
+// GetPackageArchive - get package as archive
 func (c *ComposerRegistry) GetPackageArchive(uuid string, ref string) ([]byte, error) {
+	// TODO: it's better to reorder here, first of all, check cache
 	archive, err := c.conn.GetArchive(client.KindComposer, uuid, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	pkg, err := helpers.TarGzToZip(archive, uuid, ref)
+	pkg, err := helpers.GetComposerArchive(archive, uuid, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +150,7 @@ func (p *ComposerPackage) fillVersions(c *client.GitLabConnection, src *client.G
 
 // fill metadata from tag's metadata composer.json
 func (p *ComposerPackage) fillMetadata(v *composerVersion, uuid string, tag client.Tag, endpoint string) {
-	// fill optional composer fields
+
 	tag.MetadataLock.RLock()
 	v.Type, _ = tag.Metadata.GetString("type")
 	v.Extra, _ = tag.Metadata.GetMapInterface("extra", nil)
@@ -166,7 +161,6 @@ func (p *ComposerPackage) fillMetadata(v *composerVersion, uuid string, tag clie
 	v.Bin, _ = tag.Metadata.GetListInterface("bin", nil)
 	tag.MetadataLock.RUnlock()
 
-	// fill distribution struct
 	v.Dist = composerDist{
 		Url:       fmt.Sprintf(endpoint, uuid, tag.Reference),
 		Type:      "zip",
@@ -196,16 +190,16 @@ func (p *ComposerPackage) versionListFromTags(src *client.GitLabRepo, endpoint s
 				return
 			}
 
-			// create base object with version string including "v"
+			// since composer support "v", adding it.
 			v := &composerVersion{
 				Version: fmt.Sprintf("v%s", releaseInfo.String()),
 			}
 
-			// check mandatory field
 			tag.MetadataLock.RLock()
 			v.Name, err = tag.Metadata.GetString("name")
 			tag.MetadataLock.RUnlock()
 
+			// name is mandatory field
 			if err != nil {
 				versionChan <- nil
 				return

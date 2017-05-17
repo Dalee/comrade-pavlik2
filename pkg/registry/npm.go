@@ -47,22 +47,21 @@ func NewNpmRegistry(conn *client.GitLabConnection) *NpmRegistry {
 	}
 }
 
-//
+// find project by name in package.json in each master branch of package repository
+// download project archive, calculate sha1 hash and put it to LRU-cache
+// generate final NpmPackage structure
 func (c *NpmRegistry) GetPackageInfo(name string, endpoint string) (*NpmPackage, error) {
-	// find project by name in package.json in each master branch of package repository
-	// download project archive, calculate sha1 hash and put it to LRU-cache
-	// generate final NpmPackage structure
 	var project *client.GitLabRepo
 	var err error
 
-	project, err = c.findPackageByName(name)
-	if err != nil {
-		// let's try to find package without namespace
-		slashIndex := strings.Index(name, "/")
-		nameWithoutNamespace := name[slashIndex+1:]
+	// searching for package as it is provided
+	if project, err = c.findPackageByName(name); err != nil {
 
-		project, err = c.findPackageByName(nameWithoutNamespace)
-		if err != nil {
+		// not found, for backward compatibility try to cut-off scope
+		slashPos := strings.Index(name, "/")
+		name := name[slashPos+1:]
+
+		if project, err = c.findPackageByName(name); err != nil {
 			return nil, err
 		}
 	}
@@ -72,12 +71,12 @@ func (c *NpmRegistry) GetPackageInfo(name string, endpoint string) (*NpmPackage,
 		Versions: make(map[string]npmVersion, 0),
 	}
 
-	// when filling version, connection to gitlab is required for generating
-	// sha1 hash for each tag.
+	// when filling version, connection to gitlab is required for generating sha1 hash for each tag
 	if err := rootPackage.fillVersions(c.conn, project, endpoint); err != nil {
 		return nil, err
 	}
 
+	// fill base parameters
 	if err := rootPackage.fillBase(project); err != nil {
 		return nil, err
 	}
@@ -87,30 +86,27 @@ func (c *NpmRegistry) GetPackageInfo(name string, endpoint string) (*NpmPackage,
 
 // This method should always serve packages from cache
 func (c *NpmRegistry) GetPackageArchive(uuid string, ref string) ([]byte, error) {
-	var archive []byte
-	var err error
-
-	// fetch data from cache
-	archive, err = helpers.DataFromCache(uuid, ref)
-	if err == nil {
-		return archive, nil
+	// try to fetch data from cache
+	if finalArchive, err := helpers.GetNpmArchiveFromCache(uuid, ref); err == nil {
+		return finalArchive, nil
 	}
 
-	// re-fetch from gitlab
-	// fetch archive for this tag and generate sha1 hash
-	if archive, err = c.conn.GetArchive(client.KindNpm, uuid, ref); err != nil {
+	// fetch archive from gitlab
+	rawArchive, err := c.conn.GetArchive(client.KindNpm, uuid, ref)
+	if err != nil {
 		return nil, err
 	}
 
 	// calculate sha1 sum and put data to cache
-	if _, err = helpers.DataToCache(archive, uuid, ref); err != nil {
+	npmArchive, _, err := helpers.PutNpmArchiveToCache(rawArchive, uuid, ref)
+	if err != nil {
 		return nil, err
 	}
 
-	return archive, nil
+	return npmArchive, nil
 }
 
-// find package by name provided (without namespace)
+//
 func (c *NpmRegistry) findPackageByName(name string) (*client.GitLabRepo, error) {
 	projectList, err := c.conn.GetRepoList(client.KindNpm)
 	if err != nil {
@@ -150,8 +146,7 @@ func (p *NpmPackage) fillBase(src *client.GitLabRepo) error {
 	return nil
 }
 
-// fetch version from GitLab and calculate sha1 and store in cache
-// fill version information
+// fetch version (tag) from GitLab, calculate sha1 and store archive in cache
 func (p *NpmPackage) fillVersions(c *client.GitLabConnection, src *client.GitLabRepo, endpoint string) error {
 
 	versionChan := make(chan *npmVersion)
@@ -175,14 +170,14 @@ func (p *NpmPackage) fillVersions(c *client.GitLabConnection, src *client.GitLab
 			}
 
 			// fetch archive for this tag and generate sha1 hash
-			archive, err := c.GetArchive(client.KindNpm, src.UUID, tag.Reference)
+			rawArchive, err := c.GetArchive(client.KindNpm, src.UUID, tag.Reference)
 			if err != nil {
 				versionChan <- nil
 				return
 			}
 
 			// calculate sha1 sum and put data to cache
-			sum, err := helpers.DataToCache(archive, src.UUID, tag.Reference)
+			_, sum, err := helpers.PutNpmArchiveToCache(rawArchive, src.UUID, tag.Reference)
 			if err != nil {
 				versionChan <- nil
 				return

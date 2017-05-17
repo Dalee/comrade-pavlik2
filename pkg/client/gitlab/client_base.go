@@ -8,8 +8,8 @@ import (
 	"net/url"
 )
 
-//
-//
+// @see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-5-stable/doc/api/projects.md#list-projects
+// https://docs.gitlab.com/ee/api/projects.html#list-projects
 //
 func (c *Client) GetProjectList() ([]*Project, error) {
 
@@ -32,12 +32,12 @@ func (c *Client) GetProjectList() ([]*Project, error) {
 	return projectList, nil
 }
 
-//
-//
+// @see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-5-stable/doc/api/projects.md#get-single-project
+// @see https://docs.gitlab.com/ee/api/projects.html#get-single-project
 //
 func (c *Client) GetProjectById(projectId int) (*Project, error) {
-
 	endpoint := fmt.Sprintf("projects/%d", projectId)
+
 	pageList, err := c.executeAPIMethod(endpoint)
 	if err != nil {
 		return nil, err
@@ -55,19 +55,18 @@ func (c *Client) GetProjectById(projectId int) (*Project, error) {
 	return result, nil
 }
 
-//
-//
+// @see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-5-stable/doc/api/tags.md#list-project-repository-tags
+// @see https://docs.gitlab.com/ee/api/tags.html#list-project-repository-tags
 //
 func (c *Client) GetTagList(project *Project) ([]*Tag, error) {
-
 	endpoint := fmt.Sprintf("projects/%d/repository/tags", project.ID)
+
 	pageList, err := c.executeAPIMethod(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	tagList := make([]*Tag, 0)
-
 	for _, body := range pageList {
 		page := make([]*Tag, 0)
 		if err := json.Unmarshal(body, &page); err != nil {
@@ -80,21 +79,13 @@ func (c *Client) GetTagList(project *Project) ([]*Tag, error) {
 	return tagList, nil
 }
 
-//
-//
+// @see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-5-stable/doc/api/repositories.md#get-file-archive
+// @see https://docs.gitlab.com/ee/api/repositories.html#get-file-archive
 //
 func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
-	// v4 uses sha as parameter name
-	// v3 uses ref as parameter name
-	refParam := "ref"
-	if c.HasV4Support {
-		refParam = "sha"
-	}
-
 	endpoint := fmt.Sprintf(
-		"projects/%d/repository/archive.tar.gz?%s=%s",
+		"projects/%d/repository/archive.tar.gz?sha=%s",
 		project.ID,
-		refParam,
 		url.QueryEscape(ref),
 	)
 
@@ -102,7 +93,6 @@ func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	if len(pageList) == 0 {
 		return nil, errors.New("Archive operation failed")
 	}
@@ -110,8 +100,14 @@ func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
 	return pageList[0], nil
 }
 
+// @see https://gitlab.com/gitlab-org/gitlab-ce/blob/8-5-stable/doc/api/repository_files.md#get-file-from-repository
+// for v3 file_path should be QueryString parameter.
 //
+// @see https://docs.gitlab.com/ee/api/repository_files.html#get-file-from-repository
+// for v4 file_path is not a parameter but part of URI. Should be encoded anyway.
+// update, right now this one doesn't seem's to work.
 //
+// KEEP EYE ON THIS METHOD, v4 right now doesn't work as expected.
 //
 func (c *Client) GetFile(project *Project, path, ref string) ([]byte, error) {
 

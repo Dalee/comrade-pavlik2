@@ -107,12 +107,12 @@ ExecStart=/usr/bin/docker run --rm --name %n \
         -e "GITLAB_FILE_NAMESPACE=acme" \
         -e "GITLAB_REPO_FILE_EXTRA_LIST=composerList.json,npmList.json" \
         -p 8080:4000 \
-        dalee/comrade-pavlik2:1.0.3
+        dalee/comrade-pavlik2:1.0.5
 
 [Install]
 WantedBy=multi-user.target
 ```
-> Please check image version, stable version is >= 1.0.3
+> Please check image version, stable version is >= 1.0.5
 
 ### Project setup
 

@@ -1,0 +1,17 @@
+language: go
+go:
+  - 1.7.x
+  - master
+
+go_import_path: comrade-pavlik2
+
+cache:
+  directories:
+    - vendor
+
+install:
+  - make install
+
+script:
+  - make build-linux
+  - make test

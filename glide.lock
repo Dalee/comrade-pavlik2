@@ -1,0 +1,48 @@
+hash: e83410066fe7711ee32e58baaa5166fc16cc82df6d851ca9f3a8a4a5338a2c23
+updated: 2017-04-21T14:32:58.844654128+03:00
+imports:
+- name: github.com/blang/semver
+  version: b38d23b8782a487059e8fc8773e9a5b228a77cb6
+- name: github.com/elazarl/go-bindata-assetfs
+  version: 57eb5e1fc594ad4b0b1dbea7b286d299e0cb43c2
+- name: github.com/go-macaron/bindata
+  version: 85786f57eee3e5544a9cc24fa2afe425b97a8652
+- name: github.com/go-macaron/inject
+  version: d8a0b8677191f4380287cfebd08e462217bac7ad
+- name: github.com/hashicorp/golang-lru
+  version: 0a025b7e63adc15a622f29b0b2c4c3848243bbf6
+  subpackages:
+  - simplelru
+- name: github.com/jhoonb/archivex
+  version: be4efa7ec0c38ab76d56037014c90d48d6b13037
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+- name: github.com/Unknwon/com
+  version: 0db4a625e949e956314d7d1adea9bf82384cc10c
+- name: golang.org/x/crypto
+  version: 4ed45ec682102c643324fae5dff8dab085b6c300
+  subpackages:
+  - pbkdf2
+- name: golang.org/x/net
+  version: 236b8f043b920452504e263bc21d354427127473
+  subpackages:
+  - publicsuffix
+- name: gopkg.in/ini.v1
+  version: 6f66b0e091edb3c7b380f7c4f0f884274d550b67
+- name: gopkg.in/macaron.v1
+  version: a325110f8b392bce3e5cdeb8c44bf98078ada3be
+- name: gopkg.in/resty.v0
+  version: 2e0c2310ba20c7edb6162ea2f6c0d5bba2e5e56d
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib

@@ -110,13 +110,30 @@ func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
 // KEEP EYE ON THIS METHOD, v4 right now doesn't work as expected.
 //
 func (c *Client) GetFile(project *Project, path, ref string) ([]byte, error) {
+	var endpoint string
 
-	endpoint := fmt.Sprintf(
+	// v3 and v4:legacy method for accessing files
+	endpoint = fmt.Sprintf(
 		"projects/%d/repository/files?file_path=%s&ref=%s",
 		project.ID,
 		url.QueryEscape(path),
 		url.QueryEscape(ref),
 	)
+
+	if c.HasV4Support {
+		// check broken v4 api
+		r, _ := c.executeHead(endpoint)
+		if r.StatusCode() != 200 {
+			// ok, gitlab has correct v4 support
+			endpoint = fmt.Sprintf(
+				"projects/%d/repository/files/%s?ref=%s",
+				project.ID,
+				url.QueryEscape(path),
+				url.QueryEscape(ref),
+			)
+		}
+	}
+
 	pageList, err := c.executeAPIMethod(endpoint)
 	if err != nil {
 		return nil, err

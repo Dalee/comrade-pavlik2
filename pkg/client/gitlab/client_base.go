@@ -107,8 +107,8 @@ func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
 // for v4 file_path is not a parameter but part of URI. Should be encoded anyway.
 // update, right now this one doesn't seem's to work.
 //
-// GitLab < v9.4.2: v4 right now doesn't work as expected.
-// GitLab >= v9.4.2: v4 work as expected.
+// GitLab < v9.4.2: v4 method doesn't work as documented, uses v3 signature.
+// GitLab >= v9.4.2: v4 work as documented.
 //
 // To maintain compatibility between all v3, v4-pre and v4 versions,
 // one extra HEAD request should be executed.

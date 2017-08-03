@@ -107,16 +107,37 @@ func (c *Client) GetArchive(project *Project, ref string) ([]byte, error) {
 // for v4 file_path is not a parameter but part of URI. Should be encoded anyway.
 // update, right now this one doesn't seem's to work.
 //
-// KEEP EYE ON THIS METHOD, v4 right now doesn't work as expected.
+// GitLab < v9.4.2: v4 method doesn't work as documented, uses v3 signature.
+// GitLab >= v9.4.2: v4 work as documented.
+//
+// To maintain compatibility between all v3, v4-pre and v4 versions,
+// one extra HEAD request should be executed.
 //
 func (c *Client) GetFile(project *Project, path, ref string) ([]byte, error) {
+	var endpoint string
 
-	endpoint := fmt.Sprintf(
+	// v3 and v4:legacy method for accessing files
+	endpoint = fmt.Sprintf(
 		"projects/%d/repository/files?file_path=%s&ref=%s",
 		project.ID,
 		url.QueryEscape(path),
 		url.QueryEscape(ref),
 	)
+
+	if c.HasV4Support {
+		// check broken v4 api
+		r, _ := c.executeHead(endpoint)
+		if r.StatusCode() != 200 {
+			// ok, gitlab has correct v4 support
+			endpoint = fmt.Sprintf(
+				"projects/%d/repository/files/%s?ref=%s",
+				project.ID,
+				url.QueryEscape(path),
+				url.QueryEscape(ref),
+			)
+		}
+	}
+
 	pageList, err := c.executeAPIMethod(endpoint)
 	if err != nil {
 		return nil, err

@@ -31,7 +31,7 @@ format:
 	gofmt -d -w -s -e ./pkg/
 
 build-linux: templates-release
-	GOOS=linux GOARCH=amd64 go build -ldflags "-w" -o ./pavlik ./main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-w" -o ./pavlik ./main.go
 
 docker: build-linux
 	docker build -t pavlik:1 .
